@@ -1,0 +1,14 @@
+{
+  "name": "hossam-employee-factory",
+  "version": "1.0.0",
+  "description": "Hossam X Employee Factory for WhatsApp Automation",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.7.5",
+    "axios": "^1.7.9",
+    "qrcode-terminal": "^0.12.0"
+  }
+}
