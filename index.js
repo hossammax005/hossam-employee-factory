@@ -1,4 +1,4 @@
-consconst { makeWASocket, useMultiFileAuthState, DisconnectReason } = require('@whiskeysockets/baileys');
+const { makeWASocket, useMultiFileAuthState, DisconnectReason } = require('@whiskeysockets/baileys');
 const axios = require('axios');
 const qrcode = require('qrcode-terminal');
 
@@ -52,7 +52,7 @@ async function startBot() {
             const replyText = response.data.choices[0].message.content;
             await sock.sendMessage(senderID, { text: replyText });
 
-        }CharField (error) {
+        } catch (error) {
             console.error('خطأ في معالجة الرد:', error.message);
         }
     });
@@ -61,7 +61,3 @@ async function startBot() {
 }
 
 startBot();
- { makeWASocket, useMultiFileAuthState, DisconnectReason } = require('@whiskeysockets/baileys');
-const axios = require('axios');
-
-console.log("Hossam Employee Factory - Engine Ready!");
