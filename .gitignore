@@ -1,0 +1,11 @@
+# Local secrets and runtime-only data
+.env
+.env.*
+!.env.example
+runtime-data/
+data/
+auth_session/
+auth_sessions/
+logs/
+*.log
+*.tmp

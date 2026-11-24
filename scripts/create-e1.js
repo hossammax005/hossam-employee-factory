@@ -1,0 +1,6 @@
+'use strict';
+const path=require('node:path');
+const {EmployeeService}=require('../src/employees/employee-service');
+async function ensureE1({dataDir=process.env.HOSSAM_DATA_DIR||path.join(process.cwd(),'runtime-data')}={}){const service=new EmployeeService({dataDir});try{return{created:false,employee:await service.getEmployee('E1')};}catch(e){if(!e.message.startsWith('Employee not found:'))throw e;}const employee=await service.createEmployee({id:'E1',config:{identity:{name:'E1',role:'Internal Test Employee'},instructions:{systemPrompt:'أنت موظف رقمي داخلي للاختبار المعماري فقط. لا تتصل بعملاء أو خدمات خارجية، ولا ترسل أي رسائل.'},limits:{maxConcurrentAiRequests:2}}});return{created:true,employee};}
+if(require.main===module)ensureE1().then(({created,employee})=>console.log(JSON.stringify({result:created?'E1_CREATED':'E1_ALREADY_EXISTS',id:employee.id,lifecycle:employee.lifecycle,currentConfigVersion:employee.currentConfigVersion,note:'No WhatsApp connection or external message was started.'},null,2))).catch(e=>{console.error('E1 bootstrap failed:',e.message);process.exitCode=1;});
+module.exports={ensureE1};
