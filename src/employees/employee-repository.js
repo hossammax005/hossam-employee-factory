@@ -4,24 +4,19 @@ const {randomUUID}=require('node:crypto');
 const {JsonFileStore}=require('../storage/json-file-store');
 const EMPLOYEE_ID_PATTERN=/^[a-zA-Z0-9_-]{1,64}$/;
 class EmployeeRepository {
-  constructor(dataDir){this.store=new JsonFileStore(dataDir);}
+  constructor(dataDir){this.store=new JsonFileStore(dataDir);this.locks=new Map();}
+  async withEmployeeLock(id,fn){const previous=this.locks.get(id)||Promise.resolve();let release;const current=new Promise(r=>{release=r;});this.locks.set(id,current);await previous;try{return await fn();}finally{release();if(this.locks.get(id)===current)this.locks.delete(id);}}
   assertEmployeeId(id){if(typeof id!=='string'||!EMPLOYEE_ID_PATTERN.test(id))throw new TypeError('employeeId may contain only letters, numbers, underscore, and hyphen (1-64 chars).');}
   employeeDir(id){this.assertEmployeeId(id);return path.posix.join('employees',id);}
   versionName(v){if(!Number.isSafeInteger(v)||v<1)throw new TypeError('version must be a positive safe integer.');return 'v'+String(v).padStart(6,'0')+'.json';}
-  async create(record){
+  async create(record){return this.withEmployeeLock(record.id,async()=>{
     const dir=this.employeeDir(record.id),lock=dir+'.create-lock',stage=dir+'.create-'+process.pid+'-'+randomUUID();
     await this.store.ensureDirectory('employees');
     try{await this.store.createDirectoryExclusive(lock);}catch(e){if(e.code==='EEXIST')throw new Error('Employee creation is already in progress: '+record.id);throw e;}
-    try{
-      if(await this.store.readJson(dir+'/employee.json'))throw new Error('Employee already exists: '+record.id);
-      await this.store.createDirectoryExclusive(stage);
-      await this.store.writeJson(stage+'/employee.json',record);
-      await this.store.writeJsonExclusive(stage+'/versions/'+this.versionName(record.currentConfigVersion),{version:record.currentConfigVersion,createdAt:record.createdAt,config:record.config,reason:'INITIAL',sourceVersion:null});
-      await this.store.rename(stage,dir);
-      return record;
-    }catch(e){await this.store.remove(stage,{recursive:true}).catch(()=>{});throw e;}
+    try{if(await this.store.readJson(dir+'/employee.json'))throw new Error('Employee already exists: '+record.id);await this.store.createDirectoryExclusive(stage);await this.store.writeJson(stage+'/employee.json',record);await this.store.writeJsonExclusive(stage+'/versions/'+this.versionName(record.currentConfigVersion),{version:record.currentConfigVersion,createdAt:record.createdAt,config:record.config,reason:'INITIAL',sourceVersion:null});await this.store.rename(stage,dir);return record;}
+    catch(e){await this.store.remove(stage,{recursive:true}).catch(()=>{});throw e;}
     finally{await this.store.remove(lock,{recursive:true}).catch(()=>{});}
-  }
+  });}
   async get(id){return this.store.readJson(this.employeeDir(id)+'/employee.json');}
   async listEmployees(){const entries=await this.store.list('employees'),out=[];for(const e of entries){if(!e.isDirectory()||!EMPLOYEE_ID_PATTERN.test(e.name))continue;const r=await this.get(e.name);if(r)out.push(r);}return out;}
   async save(record){await this.store.writeJson(this.employeeDir(record.id)+'/employee.json',record);return record;}
