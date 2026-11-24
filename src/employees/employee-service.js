@@ -5,7 +5,7 @@ class VersionConflictError extends Error{constructor(expected,actual){super('Con
 class EmployeeService {
   constructor({dataDir,repository}={}){if(!repository&&!dataDir)throw new TypeError('Provide dataDir or repository.');this.repository=repository||new EmployeeRepository(dataDir);}
   withEmployeeLock(id,fn){return this.repository.withEmployeeLock(id,fn);}
-  async createEmployee({id,config}){const c=validateEmployeeConfig(config),t=new Date().toISOString(),record={schemaVersion:1,id,createdAt:t,updatedAt:t,lifecycle:'STOPPED',currentConfigVersion:1,config:c};return this.withEmployeeLock(id,()=>this.repository.create(record));}
+  async createEmployee({id,config}){const c=validateEmployeeConfig(config),t=new Date().toISOString(),record={schemaVersion:1,id,createdAt:t,updatedAt:t,lifecycle:'STOPPED',currentConfigVersion:1,config:c};return this.repository.create(record);}
   async getEmployee(id){const e=await this.repository.get(id);if(!e)throw new Error('Employee not found: '+id);return e;}
   async commitConfiguration(id,nextConfig,{reason,sourceVersion=null,expectedVersion}={}){return this.withEmployeeLock(id,async()=>{
     const employee=await this.getEmployee(id);
