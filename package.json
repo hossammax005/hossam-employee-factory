@@ -4,7 +4,8 @@
   "description": "Hossam X Employee Factory for WhatsApp Automation",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "start:e1": "node src/employee.js"
   },
   "dependencies": {
     "@whiskeysockets/baileys": "^6.7.5",
