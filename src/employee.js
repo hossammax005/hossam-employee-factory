@@ -1,6 +1,6 @@
 'use strict';
 
-const { makeWASocket, useMultiFileAuthState, DisconnectReason } = require('@whiskeysockets/baileys');
+const { makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion } = require('@whiskeysockets/baileys');
 const readline = require('node:readline/promises');
 const { stdin, stdout } = require('node:process');
 const path = require('node:path');
@@ -94,6 +94,14 @@ async function getGroqResponse(userText) {
 async function main() {
   const { state, saveCreds } = await useMultiFileAuthState(SESSION_DIR);
 
+  // Use the WhatsApp Web version currently recommended by Baileys maintainers.
+  const waVersionInfo = await fetchLatestBaileysVersion();
+  const waVersion = waVersionInfo.version;
+  console.log('WhatsApp Web version: ' + waVersion.join('.') + ' (maintainer latest: ' + waVersionInfo.isLatest + ')');
+  if (!waVersionInfo.isLatest && waVersionInfo.error) {
+    console.warn('تعذر جلب إصدار Baileys الأحدث؛ سيتم استخدام الإصدار المضمّن:', waVersionInfo.error.message || waVersionInfo.error);
+  }
+
   if (!state.creds.registered) {
     const rl = readline.createInterface({ input: stdin, output: stdout });
     phoneNumber = (await rl.question(
@@ -116,6 +124,7 @@ async function main() {
     let pairingRequested = false;
     const sock = makeWASocket({
       auth: state,
+      version: waVersion,
       printQRInTerminal: false,
       markOnlineOnConnect: false,
       syncFullHistory: false,
