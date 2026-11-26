@@ -4,6 +4,12 @@
 
 E1 receives direct text messages, sends them to Groq for an Arabic Egyptian response, and replies in the same WhatsApp conversation.
 
+## Latest verified checkpoint — 2026-11-26
+
+The user completed a successful live E1 pairing using an isolated clean auth directory and verified a reply to a message sent from another WhatsApp number. See [E1 first successful run and auth incident report](docs/E1_FIRST_SUCCESS_AND_AUTH_INCIDENT_2026-11-26.md).
+
+The clean-session result strongly supports (but does not conclusively prove) the hypothesis that stale partial pairing identity in the previous auth state caused Baileys to take an inappropriate login path. The original auth directory was preserved. The shared source code still requires a deliberate auth-lifecycle fix and tests; this checkpoint does not claim production readiness or prompt-injection safety.
+
 ### Requirements
 - Node.js 20.6 or newer (Node.js 24 is recommended).
 - WhatsApp Business account for the E1 session.
